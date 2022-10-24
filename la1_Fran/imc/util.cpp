@@ -6,6 +6,7 @@
 #include "util.h"
 //Added by me
 #include <algorithm>    //sort
+#include <limits>       //infinity
 
 using namespace std;
 using namespace util;
@@ -131,12 +132,13 @@ double util::minMaxScaler(double x, double minAllowed, double maxAllowed, double
 // Scale the dataset inputs to a given range [minAllowed, maxAllowed] considering the min
 // and max values of the feature in the dataset (minData and maxData). 
 void util::minMaxScalerDataSetInputs(Dataset *dataset, double minAllowed, double maxAllowed,
-                                     double *minData, double *maxData)
+                                     std::vector<double> minData, std::vector<double> maxData)
 {
     //Made by me
-    for (int i = 0; i < dataset->nOfPatterns; i++){
-        for(int j = 0; j < dataset->nOfInputs; j++){
-            ((dataset->inputs)[i])[j] = minAllowed + (( ((dataset->inputs)[i])[j] - minData[j] ) * (maxAllowed-minAllowed)) / (maxData[j] - minData[j]);
+    //Go through by column
+    for (int i = 0; i < dataset->nOfInputs; i++){
+        for(int j = 0; j < dataset->nOfPatterns; j++){
+            ((dataset->inputs)[j])[i] = minMaxScaler( ((dataset->inputs)[j])[i], minAllowed, maxAllowed, minData[i], maxData[i] );
         }
     }
 }
@@ -148,9 +150,10 @@ void util::minMaxScalerDataSetOutputs(Dataset *dataset, double minAllowed, doubl
                                       double minData, double maxData)
 {
     //Made by me
-    for (int i = 0; i < dataset->nOfPatterns; i++){
-        for(int j = 0; j < dataset->nOfOutputs; j++){
-            dataset->outputs[i][j] = minAllowed + (( dataset->outputs[i][j] - minData ) * (maxAllowed-minAllowed)) / (maxData - minData);
+    //Go through by column
+    for (int i = 0; i < dataset->nOfOutputs; i++){
+        for(int j = 0; j < dataset->nOfPatterns; j++){
+            dataset->outputs[j][i] = minMaxScaler( ((dataset->inputs)[j])[i], minAllowed, maxAllowed, minData, maxData );
         }
     }
 }
@@ -160,16 +163,14 @@ void util::minMaxScalerDataSetOutputs(Dataset *dataset, double minAllowed, doubl
 std::vector<double> util::minDatasetInputs(Dataset *dataset)
 {
     //Made by me
-    //Copy of inputs' vector
-    std::vector<std::vector<double>> copy(dataset->inputs);
+    std::vector<double> min = std::vector<double>(dataset->nOfInputs,std::numeric_limits<double>::infinity());
 
-    std::vector<double> min;
-
-    for ( int i = 0; i < copy.size(); i++)
-    {
-        std::sort(copy[i].begin(), copy[i].end());
-
-        min.push_back( copy[i].front() );
+    for (int i = 0; i < dataset->nOfInputs; i++){
+        for(int j = 0; j < dataset->nOfPatterns; j++){
+            if ( min[i] > dataset->inputs[j][i]){
+                min[i] = dataset->inputs[j][i];
+            }
+        }
     }
 
     return min;
@@ -180,16 +181,14 @@ std::vector<double> util::minDatasetInputs(Dataset *dataset)
 std::vector<double> util::maxDatasetInputs(Dataset *dataset)
 {
     //Made by me
-    //Copy of inputs' vector
-    std::vector<std::vector<double>> copy(dataset->inputs);
+    std::vector<double> max = std::vector<double>(dataset->nOfInputs,-std::numeric_limits<double>::infinity());
 
-    std::vector<double> max;
-
-    for ( int i = 0; i < copy.size(); i++)
-    {
-        std::sort(copy[i].begin(), copy[i].end(), greater<double>());
-
-        max.push_back( copy[i].front() );
+    for (int i = 0; i < dataset->nOfInputs; i++){
+        for(int j = 0; j < dataset->nOfPatterns; j++){
+            if ( max[i] < dataset->inputs[j][i]){
+                max[i] = dataset->inputs[j][i];
+            }
+        }
     }
 
     return max;
@@ -200,19 +199,17 @@ std::vector<double> util::maxDatasetInputs(Dataset *dataset)
 double util::minDatasetOutputs(Dataset *dataset)
 {
     //Made by me
-    //Copy of outputs' vector
-    std::vector<std::vector<double>> copy(dataset->outputs);
+    std::vector<double> min = std::vector<double>(dataset->nOfOutputs,std::numeric_limits<double>::infinity());
 
-    double min = 10;   // 10 because the outputs values are scalling between [-1,1]
-    for ( int i = 0; i<copy.size(); i++)
-    {
-        std::sort(copy[i].begin(), copy[i].end());
-
-        if( copy[i].front() < min)
-            min = copy[i].front();
+    for (int i = 0; i < dataset->nOfOutputs; i++){
+        for(int j = 0; j < dataset->nOfPatterns; j++){
+            if ( min[i] > dataset->outputs[j][i]){
+                min[i] = dataset->outputs[j][i];
+            }
+        }
     }
 
-    return min;
+    return *std::min_element( min.begin(), min.end() );
 }
 
 // ------------------------------
@@ -220,17 +217,15 @@ double util::minDatasetOutputs(Dataset *dataset)
 double util::maxDatasetOutputs(Dataset *dataset)
 {
     //Made by me
-    //Copy of outputs' vector
-    std::vector<std::vector<double>> copy(dataset->outputs);
+    std::vector<double> max = std::vector<double>(dataset->nOfOutputs,-std::numeric_limits<double>::infinity());
 
-    double max = -10;   // -10 because the outputs values are scalling between [-1,1]
-    for ( int i = 0; i<copy.size(); i++)
-    {
-        std::sort(copy[i].begin(), copy[i].end(), greater<double>());
-
-        if( copy[i].front() > max)
-            max = copy[i].front();
+    for (int i = 0; i < dataset->nOfOutputs; i++){
+        for(int j = 0; j < dataset->nOfPatterns; j++){
+            if ( max[i] < dataset->outputs[j][i]){
+                max[i] = dataset->outputs[j][i];
+            }
+        }
     }
 
-    return max;
+    return *std::max_element( max.begin(), max.end() );
 }

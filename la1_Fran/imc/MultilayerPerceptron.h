@@ -44,7 +44,7 @@ private:
 	void feedInputs(std::vector<double> input);
 
 	// Get the outputs predicted by the network (out vector the output layer) and save them in the vector passed as an argument
-	void getOutputs(double* output);
+	void getOutputs(std::vector<double> output);
 
 	// Make a copy of all the weights (copy w in wCopy)
 	void copyWeights();
@@ -56,10 +56,10 @@ private:
 	void forwardPropagate();
 
 	// Obtain the output error (MSE) of the out vector of the output layer wrt a target vector and return it
-	double obtainError(double* target);
+	double obtainError(std::vector<double> target);
 
 	// Backpropagate the output error wrt a vector passed as an argument, from the last layer to the first one <--<--
-	void backpropagateError(double* target);
+	void backpropagateError(std::vector<double> target);
 
 	// Accumulate the changes produced by one pattern and save them in deltaW
 	void accumulateChange();
@@ -81,7 +81,7 @@ public:
 	double mu;              // Momentum factor
 
 	// Constructor: Default values for all the parameters
-	MultilayerPerceptron();
+	MultilayerPerceptron(double, double);
 
 	// DESTRUCTOR: free memory
 	~MultilayerPerceptron();

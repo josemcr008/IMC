@@ -1,0 +1,59 @@
+while ((c = getopt(argc, argv, "t:T:i:l:h:e:m:w:p")) != -1)
+    {
+        // The parameters needed for using the optional prediction mode of Kaggle have been included.
+        // You should add the rest of parameters needed for the lab assignment.
+        switch(c){
+            case 't':   //Added by my
+                tflag = true;
+                tvalue = optarg;
+                break;
+            case 'T':   //Added by my
+                Tflag = true;
+                Tvalue = optarg;
+                break;
+            case 'i':   //Added by me
+                iflag = true;   //Used to change the number of iteration if is true or default if is false
+                /* SHOULD I CHECK IF INPUT IS A NUMBER? */
+                ivalue = std::stoi(optarg);
+                break;
+            case 'l':   //Added by me
+                lflag = true;   //Used to change the number of hidden layers if is true or default if is false
+                /* SHOULD I CHECK IF INPUT IS A NUMBER? */
+                lvalue = std::stoi(optarg);
+                break;
+            case 'h':   //Added by me
+                hflag = true;   //Used to change the number of neurons of hidden layers if is true or default if is false
+                /* SHOULD I CHECK IF INPUT IS A NUMBER? */
+                hvalue = std::stoi(optarg);
+                break;
+            case 'e':   //Added by me
+                eflag = true;   //Used to change eta parameter if is true or default if is false
+                /* SHOULD I CHECK IF INPUT IS A NUMBER? */
+                evalue = std::stof(optarg);
+                break;
+            case 'm':   //Added by me
+                mflag = true;   //Used to change mu parameter if is true or default if is false
+                /* SHOULD I CHECK IF INPUT IS A NUMBER? */
+                mvalue = std::stof(optarg);
+                break;
+            case 'w':
+                wflag = true;
+                wvalue = optarg;
+                break;
+            case 'p':
+                pflag = true;
+                break;
+            case '?':
+                if (optopt == 't' || optopt == 'T' || optopt == 'w' || optopt == 'p')
+                    fprintf (stderr, "The option -%c requires an argument.\n", optopt);
+                else if (isprint (optopt))
+                    fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+                else
+                    fprintf (stderr,
+                             "Unknown character `\\x%x'.\n",
+                             optopt);
+                return EXIT_FAILURE;
+            default:
+                return EXIT_FAILURE;
+        }
+    }

@@ -26,7 +26,7 @@ using namespace util;
 
 int main(int argc, char **argv) {
     // Process arguments of the command line
-    bool tflag = 0, Tflag = 0, iflag = 0, lflag = 0, hflag = 0, eflag = 0, mflag = 0, wflag = 0, pflag = 0;    //Changed by me
+    bool tflag = 0, Tflag = 0, iflag = 0, lflag = 0, hflag = 0, eflag = 0, mflag = 0, wflag = 0, pflag = 0, sflag = 0;    //Changed by me
     char *tvalue = NULL, *Tvalue = NULL, *wvalue = NULL;    //Changed by me
     int c, ivalue, lvalue, hvalue;
     float evalue = 0.0, mvalue = 0.0;
@@ -35,70 +35,36 @@ int main(int argc, char **argv) {
 
     // a: Option that requires an argument
     // a:: The argument required is optional
-    while ((c = getopt(argc, argv, "t:T:i:l:h:e:m:w:p")) != -1)
-    {
-        // The parameters needed for using the optional prediction mode of Kaggle have been included.
-        // You should add the rest of parameters needed for the lab assignment.
-        switch(c){
-            case 't':   //Added by my
-                tflag = true;
-                tvalue = optarg;
-                break;
-            case 'T':   //Added by my
-                Tflag = true;
-                Tvalue = optarg;
-                break;
-            case 'i':   //Added by me
-                iflag = true;   //Used to change the number of iteration if is true or default if is false
-                /* SHOULD I CHECK IF INPUT IS A NUMBER? */
-                ivalue = std::stoi(optarg);
-                break;
-            case 'l':   //Added by me
-                lflag = true;   //Used to change the number of hidden layers if is true or default if is false
-                /* SHOULD I CHECK IF INPUT IS A NUMBER? */
-                lvalue = std::stoi(optarg);
-                break;
-            case 'h':   //Added by me
-                hflag = true;   //Used to change the number of neurons of hidden layers if is true or default if is false
-                /* SHOULD I CHECK IF INPUT IS A NUMBER? */
-                hvalue = std::stoi(optarg);
-                break;
-            case 'e':   //Added by me
-                eflag = true;   //Used to change eta parameter if is true or default if is false
-                /* SHOULD I CHECK IF INPUT IS A NUMBER? */
-                evalue = std::stof(optarg);
-                break;
-            case 'm':   //Added by me
-                mflag = true;   //Used to change mu parameter if is true or default if is false
-                /* SHOULD I CHECK IF INPUT IS A NUMBER? */
-                mvalue = std::stof(optarg);
-                break;
-            case 'w':
-                wflag = true;
-                wvalue = optarg;
-                break;
-            case 'p':
-                pflag = true;
-                break;
-            case '?':
-                if (optopt == 't' || optopt == 'T' || optopt == 'w' || optopt == 'p')
-                    fprintf (stderr, "The option -%c requires an argument.\n", optopt);
-                else if (isprint (optopt))
-                    fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-                else
-                    fprintf (stderr,
-                             "Unknown character `\\x%x'.\n",
-                             optopt);
-                return EXIT_FAILURE;
-            default:
-                return EXIT_FAILURE;
-        }
-    }
-
+//CODIGO EN FICHERO ARGUMENTOS.TXT
 
     //Added by me
     //Check if there are missing arguments and set some argument to default
+/*  if ( !tflag)
+    {
+        fprintf(stderr, "Falta el archivo de entrenamiento.\n");
+        return EXIT_FAILURE;
+    }*/
+
+    if ( !Tflag )
+        Tvalue = tvalue;
+
+    if ( !iflag )
+        ivalue = 1000;
+    
+    if ( !lflag )
+        lvalue = 1;
+    
+    if ( !hflag )
+        hvalue = 5;
+    
+    if ( !eflag )
+        evalue = 0.1;
+    
+    if ( !mflag )
+        mvalue = 0.9;
     ///////////////////////////////////////////////////////////////////
+tvalue = "/home/fran/Desktop/University/4Curso/1Cuatrimestre/IMC/Practica/Practica1/skeletonLA1IMC/la1/train_cropyield.dat";
+Tvalue = "/home/fran/Desktop/University/4Curso/1Cuatrimestre/IMC/Practica/Practica1/skeletonLA1IMC/la1/test_cropyield.dat";
 
     if (!pflag) {
         //////////////////////////////////
@@ -106,29 +72,46 @@ int main(int argc, char **argv) {
         //////////////////////////////////
 
         // Multilayer perceptron object
-    	MultilayerPerceptron mlp;
+    	MultilayerPerceptron mlp(evalue, mvalue);
 
         // Parameters of the mlp. For example, mlp.eta = value;
-    	int iterations = ivalue; // This should be corrected    //CHanged by me
+    	int iterations = ivalue; // This should be corrected    //Changed by me
 
         // Read training and test data: call to util::readData(...)
     	Dataset * trainDataset = util::readData(tvalue); // This should be corrected    //Changed by me
     	Dataset * testDataset = util::readData(Tvalue); // This should be corrected     //Changed by me
 
+        // Normalization
+        sflag = true;
+        if ( sflag ){
+            // Normalization of TRAIN dataset with Scalling
+            std::vector<double> minInValues = minDatasetInputs(trainDataset);
+            std::vector<double> maxInValues = maxDatasetInputs(trainDataset);
+            double minOutValue = minDatasetOutputs(trainDataset);
+            double maxOutValue = maxDatasetOutputs(trainDataset);
+
+            minMaxScalerDataSetInputs(trainDataset, -1.0, 1.0, minInValues, maxInValues);
+            minMaxScalerDataSetOutputs(trainDataset, -1.0, 1.0, minOutValue, maxOutValue);
+
+            minMaxScalerDataSetInputs(testDataset, -1.0, 1.0, minInValues, maxInValues);
+            minMaxScalerDataSetOutputs(testDataset, -1.0, 1.0, minOutValue, maxOutValue);
+        }
+
         // Initialize topology vector
-    	int layers= lvalue; // This should be corrected //Changed by me
-    	std::vector<int> topology= std::vector<int>(lvalue+2, hvalue); // This should be corrected //Changed by me
-        //Added by me //Last layer (output layer)
-        topology[lvalue+1] = 1;
+    	int layers= lvalue+2; // This should be corrected //Changed by me
+    	std::vector<int> topology= std::vector<int>(layers, hvalue); // This should be corrected //Changed by me
+        //Added by me //First and last layer (output layer)
+        topology[0] = trainDataset->nOfInputs;
+        topology[layers-1] = trainDataset->nOfOutputs;
 
         // Initialize the network using the topology vector
-        mlp.initialize(layers+2,topology);
+        mlp.initialize(layers,topology);
 
 
         // Seed for random numbers
         int seeds[] = {1,2,3,4,5};
-        double *testErrors = new double[5];
-        double *trainErrors = new double[5];
+        std::vector<double> testErrors = std::vector<double>(5);    //Changed by me
+        std::vector<double> trainErrors = std::vector<double>(5);   //Changed by me
         double bestTestError = 1;
         for(int i=0; i<5; i++){
             std::cout << "**********" << endl;
@@ -147,9 +130,22 @@ int main(int argc, char **argv) {
         }
 
         std::cout << "WE HAVE FINISHED WITH ALL THE SEEDS" << endl;
-
+        
         double averageTestError = 0, stdTestError = 0;
         double averageTrainError = 0, stdTrainError = 0;
+
+        //TODO: check if it is correct
+        for ( int i = 0; i < trainErrors.size(); i++){
+            averageTrainError += trainErrors[i];
+        }
+        averageTrainError /= trainErrors.size();
+        stdTrainError = sqrt(averageTrainError);
+
+        for ( int i = 0; i < testErrors.size(); i++){
+            averageTestError += testErrors[i];
+        }
+        averageTestError /= testErrors.size();
+        stdTestError = sqrt(averageTestError);
         
         // Obtain training and test averages and standard deviations
 
@@ -166,7 +162,7 @@ int main(int argc, char **argv) {
         //////////////////////////////
         
         // Multilayer perceptron object
-        MultilayerPerceptron mlp;
+        MultilayerPerceptron mlp(evalue, mvalue);
 
         // Initializing the network with the topology vector
         if(!wflag || !mlp.readWeights(wvalue))

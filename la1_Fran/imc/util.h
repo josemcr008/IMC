@@ -63,7 +63,7 @@ namespace util
     // Scale the dataset inputs to a given range [minAllowed, maxAllowed] considering the min
     // and max values of the feature in the dataset (minData and maxData). 
     void minMaxScalerDataSetInputs(Dataset *dataset, double minAllowed, double maxAllowed,
-                                   double *minData, double *maxData);
+                                   std::vector<double> minData, std::vector<double> maxData);
 
     // Scale the dataset output vector to a given range [minAllowed, maxAllowed] considering the min
     // and max values of the feature in the dataset (minData and maxData). Only for regression problems. 
